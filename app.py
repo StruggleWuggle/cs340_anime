@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, request
+from flask import Flask, render_template
 from flask_mysqldb import MySQL
 from dotenv import load_dotenv
 import os
@@ -21,7 +21,6 @@ app.config['MYSQL_PASSWORD'] = os.environ.get("340DBPW")
 app.config['MYSQL_DB'] = os.environ.get("340DB")
 app.config['MYSQL_CURSORCLASS'] = "DictCursor"
 
-db_connection = db.connect_to_database()
 mysql = MySQL(app)
 
 NAV_LINKS = [
@@ -38,48 +37,44 @@ NAV_LINKS = [
 def root():
     return render_template("main.j2", nav_links=NAV_LINKS)
 
-@app.route('/anime')
-def anime():
-    query = "SELECT * FROM anime;"
+def fetch_data(query):
+    db_connection = db.connect_to_database()
     cursor = db.execute_query(db_connection=db_connection, query=query)
     results = cursor.fetchall()
+    cursor.close()
+    db_connection.close()
+    return results
+
+@app.route('/anime')
+def anime():
+    results = fetch_data("SELECT * FROM anime;")
     return render_template("table_template.j2", nav_links=NAV_LINKS, table_title="Anime", data=results)
 
 @app.route('/app-users')
 def app_users():
-    query = "SELECT * FROM app_users;"
-    cursor = db.execute_query(db_connection=db_connection, query=query)
-    results = cursor.fetchall()
+    results = fetch_data("SELECT * FROM app_users;")
     return render_template("table_template.j2", nav_links=NAV_LINKS, table_title="App Users", data=results)
+
+# TODO decide how to handel junctions
 
 @app.route('/streaming-services')
 def streaming_services():
-    query = "SELECT * FROM streaming_services;"
-    cursor = db.execute_query(db_connection=db_connection, query=query)
-    results = cursor.fetchall()
+    results = fetch_data("SELECT * FROM streaming_services;")
     return render_template("table_template.j2", nav_links=NAV_LINKS, table_title="Streaming Services", data=results)
-
-# These are junction tables and do not need to be displayed. They currently are right now but TODO change
 
 @app.route('/streaming-anime')
 def streaming_anime():
-    query = "SELECT * FROM streaming_anime;"
-    cursor = db.execute_query(db_connection=db_connection, query=query)
-    results = cursor.fetchall()
+    results = fetch_data("SELECT * FROM streaming_anime;")
     return render_template("table_template.j2", nav_links=NAV_LINKS, table_title="Streaming Anime", data=results)
 
 @app.route('/streaming-service-users')
 def streaming_service_users():
-    query = "SELECT * FROM streaming_service_users;"
-    cursor = db.execute_query(db_connection=db_connection, query=query)
-    results = cursor.fetchall()
+    results = fetch_data("SELECT * FROM streaming_service_users;")
     return render_template("table_template.j2", nav_links=NAV_LINKS, table_title="Streaming Service Users", data=results)
 
 @app.route('/user-anime-ratings')
 def user_anime_ratings():
-    query = "SELECT * FROM user_anime_ratings;"
-    cursor = db.execute_query(db_connection=db_connection, query=query)
-    results = cursor.fetchall()
+    results = fetch_data("SELECT * FROM user_anime_ratings;")
     return render_template("table_template.j2", nav_links=NAV_LINKS, table_title="User Anime Ratings", data=results)
 
 # ------------------------------ RUN APP ------------------------------
