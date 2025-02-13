@@ -23,24 +23,38 @@ app.config['MYSQL_CURSORCLASS'] = "DictCursor"
 
 
 mysql = MySQL(app)
+people_from_app_py = [
+    {
+        "name": "Thomas",
+        "age": 33,
+        "location": "New Mexico",
+        "favorite_color": "Blue"
+    },
+    {
+        "name": "Gregory",
+        "age": 41,
+        "location": "Texas",
+        "favorite_color": "Red"
+    },
+    {
+        "name": "Vincent",
+        "age": 27,
+        "location": "Ohio",
+        "favorite_color": "Green"
+    },
+    {
+        "name": "Alexander",
+        "age": 29,
+        "location": "Florida",
+        "favorite_color": "Orange"
+    }
+]
 
 
 # Routes
 @app.route('/')
 def root():
-    query = "SELECT * FROM diagnostic;"
-    query1 = 'DROP TABLE IF EXISTS diagnostic;';
-    query2 = 'CREATE TABLE diagnostic(id INT PRIMARY KEY AUTO_INCREMENT, text VARCHAR(255) NOT NULL);';
-    query3 = 'INSERT INTO diagnostic (text) VALUES ("MySQL is working for yourONID!")';
-    query4 = 'SELECT * FROM diagnostic;';
-    cur = mysql.connection.cursor()
-    cur.execute(query1)
-    cur.execute(query2)
-    cur.execute(query3)
-    cur.execute(query4)
-    results = cur.fetchall()
-
-    return "<h1>MySQL Results</h1>" + str(results[0])
+    return render_template("main.j2", people=people_from_app_py)
 
 
 # Listener
