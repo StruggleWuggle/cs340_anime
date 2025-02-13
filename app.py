@@ -24,7 +24,6 @@ app.config['MYSQL_CURSORCLASS'] = "DictCursor"
 db_connection = db.connect_to_database()
 mysql = MySQL(app)
 
-# ------------------------------ NAVIGATION BAR ------------------------------
 NAV_LINKS = [
     {"name": "Home", "url": "/"},
     {"name": "Anime", "url": "/anime"},
@@ -34,8 +33,6 @@ NAV_LINKS = [
     {"name": "Streaming Service Users", "url": "/streaming-service-users"},
     {"name": "User Anime Ratings", "url": "/user-anime-ratings"},
 ]
-
-# ------------------------------ ROUTES ------------------------------
 
 @app.route('/')
 def root():
@@ -61,6 +58,8 @@ def streaming_services():
     cursor = db.execute_query(db_connection=db_connection, query=query)
     results = cursor.fetchall()
     return render_template("table_template.j2", nav_links=NAV_LINKS, table_title="Streaming Services", data=results)
+
+# These are junction tables and do not need to be displayed. They currently are right now but TODO change
 
 @app.route('/streaming-anime')
 def streaming_anime():
