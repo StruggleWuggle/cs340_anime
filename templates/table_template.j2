@@ -1,0 +1,60 @@
+{% extends "main.j2" %}
+
+{% block title %}Anime Recommender System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h3>{{ table_title }}</h3>
+
+    {% if data %}
+        <table class="table">
+            <thead class="table-head">
+                <tr>
+                    {% for key in data[0].keys() %}
+                        <th>{{ key | replace("_", " ") | title }}</th>
+                    {% endfor %}
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in data %}
+                <tr>
+                    {% for key in row.keys() %}
+                        <td>{{ row[key] }}</td>
+                    {% endfor %}
+                    <td>
+                        <!-- Edit Button -->
+                        <a href="#">Edit</a>
+                        <!-- Delete Button -->
+                        <a href="#">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No data in table.</p>
+    {% endif %}
+
+    <table class="table">
+        <thead class="table-head">
+                <tr>
+                    {% for key in data[0].keys() %}
+                        <th>{{ key | replace("_", " ") | title }}</th>
+                    {% endfor %}
+                    <th>Actions</th>
+                </tr>
+        </thead>
+        <tr>
+            {% for key in data[0].keys() %}
+                <td><input type="text" name="{{ key }}" placeholder="Enter {{ key | replace("_", " ") }}" /></td>
+            {% endfor %}
+            <td>
+                <button type="submit">Add</button>
+            </td>
+        </tr>
+
+    </table>
+
+</div>
+{% endblock %}
