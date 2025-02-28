@@ -1,11 +1,13 @@
 <html>
 <head>
-    <title>OSU - CS 340 - Introduction to Databases - Flask Demo Project</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anime Recommender</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
 <nav>
-    <div>
+    <div class="sidebar">
         <ul>
             {% for link in nav_links %}
                 <li>
@@ -16,11 +18,14 @@
     </div>
 </nav>
 
-{% block content %}
 <body>
-    <h1>Anime Recommender App</h1>
-    <p>Something about how this is the greatest app ever.</p>
+    <div class="content">
+        {% block content %}
+        <h1>Anime Recommender App</h1>
+        <p>Something about how this is the greatest app ever.</p>
+        {% endblock %}
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
-
-{% endblock %}
