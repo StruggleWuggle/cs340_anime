@@ -1,12 +1,10 @@
-from flask import Flask, render_template, request
-
+from flask import Flask, render_template, request, jsonify
 import pymysql
 pymysql.install_as_MySQLdb()
 
 from flask_mysqldb import MySQL
 from dotenv import load_dotenv
 import os
-import db_connector as db
 
 
 app = Flask(__name__)
@@ -51,6 +49,13 @@ def fetch_data(query, params=None):
     cur.close()
     return results
 
+def execute_query(query, params=None, fetch=False):
+    cur = mysql.connection.cursor()
+    cur.execute(query, params) if params else cur.execute(query)
+    data = cur.fetchall() if fetch else None
+    mysql.connection.commit()
+    cur.close()
+    return data
 
 @app.route('/anime')
 def anime():
@@ -63,16 +68,61 @@ def anime():
         results = fetch_data(query)
     return render_template("table_template.j2", nav_links=NAV_LINKS, table_title="Anime", data=results)
 
-@app.route('/app-users')
+@app.route('/app-users', methods=['GET', 'POST'])
 def app_users():
-    results = fetch_data("SELECT * FROM app_users;")
-    return render_template("table_template.j2", nav_links=NAV_LINKS, table_title="App Users", data=results)
-
-@app.route('/streaming-services')
+    if request.method == 'GET':
+        results = fetch_data("SELECT * FROM app_users;")
+        return render_template("table_template.j2", nav_links=NAV_LINKS, table_title="App Users", data=results)
+    
+    elif request.method == 'POST':
+        data = request.get_json()
+        required_fields = ["name", "password", "age", "gender", "location"]
+        
+        # Check if all required fields are present
+        if not data or any(field not in data for field in required_fields):
+            return jsonify({"error": "Missing required fields"}), 400
+        
+        query = """INSERT INTO app_users (name, password, age, gender, location) VALUES (%s, %s, %s, %s, %s);
+        """
+        execute_query(query, (data['name'], data['password'], data['age'], data['gender'], data['location']))
+        
+        return jsonify({"message": "User added successfully"}), 201
+    
+# FULL CRUD for streaming-services
+@app.route('/streaming-services', methods=['GET', 'POST'])
 def streaming_services():
-    results = fetch_data("SELECT * FROM streaming_services;")
-    return render_template("table_template.j2", nav_links=NAV_LINKS, table_title="Streaming Services", data=results)
+    if request.method == 'GET':
+        results = fetch_data("SELECT * FROM streaming_services;")
+        return render_template("table_template.j2", nav_links=NAV_LINKS, table_title="Streaming Services", data=results)
+    
+    elif request.method == 'POST':
+        data = request.get_json(force=True)
+        print(data)
+        if not data or 'service_name' not in data:
+            return jsonify({"error": "Missing 'service_name' field"}), 400
+    
+        query = "INSERT INTO streaming_services (service_name) VALUES (%s);"
+        execute_query(query, (data['service_name'],))
+        return jsonify({"message": "Streaming service added successfully"}), 201
+    
+@app.route('/streaming-services/edit/<int:service_id>', methods=['PUT'])
+def edit_streaming_service(service_id):
+    data = request.get_json()
+    if not data or 'service_name' not in data:
+        return jsonify({"error": "Missing 'service_name' field"}), 400
 
+    query = "UPDATE streaming_services SET service_name = %s WHERE id = %s;"
+    execute_query(query, (data['service_name'], service_id))
+
+    return jsonify({"message": "Streaming service updated successfully"}), 200
+
+@app.route('/streaming-services/delete/<int:service_id>', methods=['DELETE'])
+def delete_streaming_service(service_id):
+    query = "DELETE FROM streaming_services WHERE id = %s;"
+    execute_query(query, (service_id,))
+
+    return jsonify({"message": "Streaming service deleted successfully"}), 200
+# ------------------------
 @app.route('/streaming-anime')
 def streaming_anime():
     results = fetch_data("SELECT * FROM streaming_anime;")

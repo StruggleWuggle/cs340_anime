@@ -6,14 +6,15 @@
 <div class="container">
     <h1>{{ table_title }} Table</h1>
 
-{# SEARCH BAR #}
-<div class="search">
-<form method="GET" action="{{ request.path }}">
-	<input type="text" name="search" placeholder="Search {{table_title}}" value="{{request.args.get('search', '')}}">
-        <button type="submit">Search</button>
-</div>
+    {# SEARCH BAR #}
+    <div class="search">
+        <form method="GET" action="{{ request.path }}">
+            <input type="text" name="search" placeholder="Search {{ table_title }}" value="{{ request.args.get('search', '') }}">
+            <button type="submit">Search</button>
+        </form>
+    </div>
 
-{# FILTERS #}
+    {# FILTERS #}
     {% if filters %}
     <form method="GET" action="{{ request.path }}">
         <select name="filter">
@@ -23,13 +24,12 @@
                     {{ value }}
                 </option>
             {% endfor %}
-
         </select>
         <button type="submit">Filter</button>
     </form>
     {% endif %}
 
-{# DATA TABLE #}
+    {# DATA TABLE #}
     {% if data %}
         <table class="table">
             <thead class="table-head">
@@ -50,7 +50,7 @@
                         <!-- Edit Button -->
                         <button class="edit-btn" data-row='{{ row | tojson }}'>Edit</button>
                         <!-- Delete Button -->
-                        <form method="POST" action="/delete/{{ row.id }}" style="display:inline;">
+                        <form class="delete-form" data-id="{{ row.id }}" action="/streaming-services/delete/{{ row.id }}">
                             <button type="submit" class="delete-btn">Delete</button>
                         </form>
                     </td>
@@ -65,30 +65,58 @@
     {# ADD BUTTON OPENS MODAL #}
     <button class="savebtn" id="addBtn">Add New</button>
 
-{# EDIT/ADD MODAL #}
-<div id="editModal" class="modal">
-    <div class="modal-content">
-        <h2 id="modalTitle">Edit Entry</h2>
-        <form id="editForm" method="POST" action="">
-            <input type="hidden" id="entryId" name="id">
-            {% for key in data[0].keys() %}
-
-                {% if key.endswith('_id') %}
-                <div class="entry">
-                    <label for="{{ key }}">{{ key | replace("_", " ") | title }}</label>
-                    <input type="text" id="{{ key }}" name="{{ key }}">
-                </div>
-                {% else %}
-                <div class="entry">
-                    <label for="{{ key }}">{{ key | replace("_", " ") | title }}:</label>
-                    <input type="text" name="{{ key }}" id="{{ key }}"><br>
-                </div>
-                {% endif %}
-            {% endfor %}
-            <button class="savebtn" type="submit">Save</button>
-        </form>
+    {# EDIT/ADD MODAL #}
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle">Edit Entry</h2>
+            <form id="editForm">
+                <input type="hidden" id="entryId" name="id">
+                {% for key in data[0].keys() %}
+                    <div class="entry">
+                        <label for="{{ key }}">{{ key | replace("_", " ") | title }}:</label>
+                        <input type="text" name="{{ key }}" id="{{ key }}">
+                    </div>
+                {% endfor %}
+                <button class="savebtn" type="submit">Save</button>
+            </form>
+        </div>
     </div>
 </div>
 
+<script>
+    document.getElementById("editForm").addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        const formData = new FormData(this);
+        const jsonData = {};
+        formData.forEach((value, key) => {
+            jsonData[key] = value;
+        });
+
+        const isEditing = this.dataset.method === "PUT";
+        const endpoint = isEditing
+            ? `/streaming-services/edit/${jsonData.service_id}`
+            : `/streaming-services`;
+
+        fetch(endpoint, {
+            method: isEditing ? "PUT" : "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(jsonData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert("Error: " + data.error);
+            } else {
+                alert(data.message);
+                location.reload();
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("Failed to submit data.");
+        });
+    });
+</script>
 
 {% endblock %}
