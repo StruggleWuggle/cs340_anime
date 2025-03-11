@@ -217,13 +217,13 @@ def update_streaming_service(service_id):
     if not data or 'service_name' not in data:
         return jsonify({"error": "Missing 'service_name' field"}), 400
 
-    query = "UPDATE streaming_services SET service_name = %s WHERE id = %s;"
+    query = "UPDATE streaming_services SET service_name = %s WHERE service_id = %s;"
     execute_query(query, (data['service_name'], service_id))
     return jsonify({"message": "Streaming service updated successfully"}), 200
 
 @app.route('/streaming-services/<int:service_id>', methods=['DELETE'])
 def delete_streaming_service(service_id):
-    query = "DELETE FROM streaming_services WHERE id = %s;"
+    query = "DELETE FROM streaming_services WHERE service_id = %s;"
     execute_query(query, (service_id,))
     return jsonify({"message": "Streaming service deleted successfully"}), 200
 
