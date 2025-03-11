@@ -68,6 +68,7 @@ def anime():
         results = fetch_data(query)
     return render_template("table_template.j2", nav_links=NAV_LINKS, table_title="Anime", data=results)
 
+# APP USERS
 @app.route('/app-users', methods=['GET', 'POST'])
 def app_users():
     if request.method == 'GET':
@@ -76,6 +77,7 @@ def app_users():
     
     elif request.method == 'POST':
         data = request.get_json()
+        print(data)
         required_fields = ["name", "password", "age", "gender", "location"]
         
         # Check if all required fields are present
@@ -87,6 +89,39 @@ def app_users():
         execute_query(query, (data['name'], data['password'], data['age'], data['gender'], data['location']))
         
         return jsonify({"message": "User added successfully"}), 201
+    
+@app.route('/app-users/<int:user_id>', methods=['PUT'])
+def update_app_user(user_id):
+    data = request.get_json()
+    required_fields = ["name", "password", "age", "gender", "location"]
+
+    # Validate input data
+    if not data or any(field not in data for field in required_fields):
+        return jsonify({"error": "Missing required fields"}), 400
+
+    query = """UPDATE app_users 
+               SET name = %s, password = %s, age = %s, gender = %s, location = %s
+               WHERE app_user_id = %s;"""
+    
+    execute_query(query, (data['name'], data['password'], data['age'], data['gender'], data['location'], user_id))
+
+    return jsonify({"message": "User updated successfully"}), 200
+
+@app.route('/app-users/<int:user_id>', methods=['DELETE'])
+def delete_app_user(user_id):
+
+    # Check if the user exists
+    existing_user = fetch_data("SELECT * FROM app_users WHERE app_user_id = %s;", (user_id,))
+    
+    if not existing_user:
+        return jsonify({"error": "User not found"}), 404
+
+    # Delete user
+    query = "DELETE FROM app_users WHERE app_user_id = %s;"
+    execute_query(query, (user_id,))
+
+    return jsonify({"message": "User deleted successfully"}), 200
+
     
 # FULL CRUD for streaming-services
 @app.route('/streaming-services', methods=['GET', 'POST'])
