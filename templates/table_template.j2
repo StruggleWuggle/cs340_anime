@@ -62,7 +62,9 @@
     {% endif %}
 
     {# ADD BUTTON OPENS MODAL #}
-    <button class="savebtn" id="addBtn">Add New</button>
+    {% if table_title not in ["Streaming Anime", "Streaming Service Users", "User Anime Ratings"] %}
+        <button class="savebtn" id="addBtn">Add New</button>
+    {% endif %}
 
     {# EDIT/ADD MODAL #}
     <div id="editModal" class="modal">
@@ -71,12 +73,15 @@
             <form id="editForm">
                 <input type="hidden" id="entryId" name="id">
                 {% for key in data[0].keys() %}
-                    <div class="entry">
-                        <label for="{{ key }}">{{ key | replace("_", " ") | title }}:</label>
-                        <input type="text" name="{{ key }}" id="{{ key }}">
-                    </div>
+                    {% if loop.first == false %} {# Skip the first column #}
+                        <div class="entry">
+                            <label for="{{ key }}">{{ key | replace("_", " ") | title }}:</label>
+                            <input type="text" name="{{ key }}" id="{{ key }}">
+                        </div>
+                    {% endif %}
                 {% endfor %}
                 <button class="savebtn" type="submit">Save</button>
+                <button class="cancelbtn" type="button">Cancel</button>
             </form>
         </div>
     </div>
@@ -84,11 +89,16 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        const tableTitle = "{{ table_title }}";
+        console.log("Table Title:", tableTitle);
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
     const modal = document.getElementById("editModal");
     const modalTitle = document.getElementById("modalTitle");
     const editForm = document.getElementById("editForm");
     const addBtn = document.getElementById("addBtn");
-
+    const cancelBtn = document.querySelector(".cancelbtn");
     const tableName = "{{ table_title|lower|replace(' ', '-') }}"; // Convert to lowercase and replace spaces with dashes
 
     addBtn.addEventListener("click", () => {
@@ -96,6 +106,12 @@
         modalTitle.innerText = "Add New Entry";
         editForm.reset();
         editForm.dataset.method = "POST";
+    });
+
+    // CANCEL ADD BUTTON
+    cancelBtn.addEventListener("click", () => {
+        console.log("Cancel button clicked");
+        window.location.reload(); // Refresh the page
     });
 
     // EDIT BUTTON EVENT LISTENER
@@ -187,6 +203,8 @@
         });
     });
 });
+
+
 </script>
 
 {% endblock %}
